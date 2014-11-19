@@ -296,10 +296,33 @@ working in."
                 (set-window-dedicated-p minimap-window nil))
               (kill-buffer)))
         ;; otherwise split current window
-        (unless (split-window-horizontally
-                 (round (* (window-width) minimap-width-fraction)))
-          (message "Failed to create window. Try `delete-other-windows' (C-x 1) first.")
-          (return nil))
+        ;; (unless (split-window-horizontally
+        ;;          (round (* (window-width) minimap-width-fraction)))
+        ;;   (message "Failed to create window. Try `delete-other-windows' (C-x 1) first.")
+        ;;   (return nil))
+        (if (not (bound-and-true-p perfect-margin-mode))
+            ;; otherwise split current window
+            (unless (split-window-horizontally
+                     (round (* (window-width) minimap-width-fraction)))
+              (message "Failed to create window. Try `delete-other-windows' (C-x 1) first.")
+              (return nil))
+          (let ((init-window-margins (perfect-margin--init-window-margins)))
+            (if (not (and (= (or (car (window-margins)) 0) (car init-window-margins))
+                          (= (or (cdr (window-margins)) 0) (cdr init-window-margins))))
+                (unless (split-window-horizontally
+                         (round (* (window-width) minimap-width-fraction)))
+                  (message "Failed to create window. Try `delete-other-windows' (C-x 1) first.")
+                  (return nil))
+              ;; pre-set the margins of window before split, as split-window-horizontally inherit window's margin
+              (set-window-margins nil
+                                  (max 0 (- (car init-window-margins)
+                                            (round (* (window-width) minimap-width-fraction))))
+                                  (cdr init-window-margins))
+              (unless (split-window-horizontally
+                       (round (* perfect-margin-visible-width minimap-width-fraction)))
+                (message "Failed to create window. Try `delete-other-windows' (C-x 1) first.")
+                (return nil)))))
+        
         ;; save new window to variable
         (setq minimap-window (selected-window))
         (setq was_created t))
