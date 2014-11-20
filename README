@@ -54,4 +54,4 @@ switch-window in init.el to exclude minimap from switching to.
                 (mapcar (lambda (win)
                           (let ((name (buffer-name (window-buffer win))))
                             (if (string-match minimap-buffer-name-prefix name) nil win)))
-                        ad-return-value)))
+                        ad-return-value)))))
