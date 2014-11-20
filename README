@@ -42,3 +42,16 @@ Usage:
  * Use 'M-x minimap-create' to create the minimap.
  * Use 'M-x minimap-kill' to kill the minimap.
  * Use 'M-x customize-group RET minimap RET' to adapt minimap to your needs.
+
+Additionally when using with switch-window, place this after
+switch-window in init.el to exclude minimap from switching to.
+
+(defadvice switch-window-list (after swtich-window-list-exclude-minimap nil activate)
+  "Exclude minimap window from window list available to swtich."
+  (when (boundp 'minimap-mode)
+    (setq ad-return-value
+          (delq nil
+                (mapcar (lambda (win)
+                          (let ((name (buffer-name (window-buffer win))))
+                            (if (string-match minimap-buffer-name-prefix name) nil win)))
+                        ad-return-value)))
